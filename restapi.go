@@ -1542,10 +1542,21 @@ var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 // channelID : The ID of a Channel.
 // data      : The message struct to send.
 func (s *Session) ChannelMessageSendComplex(channelID string, data *MessageSend) (st *Message, err error) {
-	if data.Embed != nil && data.Embed.Type == "" {
-		data.Embed.Type = "rich"
+	// TODO: Remove this when compatibility is not required.
+	if data.Embed != nil {
+		if data.Embeds == nil {
+			data.Embeds = []*MessageEmbed{data.Embed}
+		} else {
+			err = fmt.Errorf("cannot specify both Embed and Embeds")
+			return
+		}
 	}
 
+	for _, embed := range data.Embeds {
+		if embed.Type == "" {
+			embed.Type = "rich"
+		}
+	}
 	endpoint := EndpointChannelMessages(channelID)
 
 	// TODO: Remove this when compatibility is not required.
@@ -1636,7 +1647,16 @@ func (s *Session) ChannelMessageSendTTS(channelID string, content string) (*Mess
 // embed     : The embed data to send.
 func (s *Session) ChannelMessageSendEmbed(channelID string, embed *MessageEmbed) (*Message, error) {
 	return s.ChannelMessageSendComplex(channelID, &MessageSend{
-		Embed: embed,
+		Embeds: []*MessageEmbed{embed},
+	})
+}
+
+// ChannelMessageSendEmbeds sends a message to the given channel with multiple embedded data.
+// channelID : The ID of a Channel.
+// embeds    : The embeds data to send.
+func (s *Session) ChannelMessageSendEmbeds(channelID string, embeds []*MessageEmbed) (*Message, error) {
+	return s.ChannelMessageSendComplex(channelID, &MessageSend{
+		Embeds: embeds,
 	})
 }
 
@@ -1663,10 +1683,21 @@ func (s *Session) ChannelMessageEdit(channelID, messageID, content string) (*Mes
 // ChannelMessageEditComplex edits an existing message, replacing it entirely with
 // the given MessageEdit struct
 func (s *Session) ChannelMessageEditComplex(m *MessageEdit) (st *Message, err error) {
-	if m.Embed != nil && m.Embed.Type == "" {
-		m.Embed.Type = "rich"
+	// TODO: Remove this when compatibility is not required.
+	if m.Embed != nil {
+		if m.Embeds == nil {
+			m.Embeds = []*MessageEmbed{m.Embed}
+		} else {
+			err = fmt.Errorf("cannot specify both Embed and Embeds")
+			return
+		}
 	}
 
+	for _, embed := range m.Embeds {
+		if embed.Type == "" {
+			embed.Type = "rich"
+		}
+	}
 	response, err := s.RequestWithBucketID("PATCH", EndpointChannelMessage(m.Channel, m.ID), m, EndpointChannelMessage(m.Channel, ""))
 	if err != nil {
 		return
