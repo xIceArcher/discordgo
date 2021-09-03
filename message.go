@@ -319,6 +319,28 @@ type MessageEmbed struct {
 	Fields      []*MessageEmbedField   `json:"fields,omitempty"`
 }
 
+func (e *MessageEmbed) Len() (l int) {
+	l += len(e.Title)
+	l += len(e.Description)
+
+	for _, f := range e.Fields {
+		if f != nil {
+			l += len(f.Name)
+			l += len(f.Value)
+		}
+	}
+
+	if e.Footer != nil {
+		l += len(e.Footer.Text)
+	}
+
+	if e.Author != nil {
+		l += len(e.Author.Name)
+	}
+
+	return
+}
+
 // EmbedType is the type of embed
 // https://discord.com/developers/docs/resources/channel#embed-object-embed-types
 type EmbedType string
