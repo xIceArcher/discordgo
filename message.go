@@ -80,8 +80,7 @@ type Message struct {
 	// A list of attachments present in the message.
 	Attachments []*MessageAttachment `json:"attachments"`
 
-	// A list of embeds present in the message. Multiple
-	// embeds can currently only be sent by webhooks.
+	// A list of embeds present in the message.
 	Embeds []*MessageEmbed `json:"embeds"`
 
 	// A list of users mentioned in the message.
@@ -148,7 +147,7 @@ type File struct {
 // MessageSend stores all parameters you can send with ChannelMessageSendComplex.
 type MessageSend struct {
 	Content         string                  `json:"content,omitempty"`
-	Embed           *MessageEmbed           `json:"embed,omitempty"`
+	Embeds          []*MessageEmbed         `json:"embeds,omitempty"`
 	TTS             bool                    `json:"tts"`
 	Files           []*File                 `json:"-"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
@@ -156,17 +155,23 @@ type MessageSend struct {
 
 	// TODO: Remove this when compatibility is not required.
 	File *File `json:"-"`
+
+	// TODO: Remove this when compatibility is not required.
+	Embed *MessageEmbed `json:"-"`
 }
 
 // MessageEdit is used to chain parameters via ChannelMessageEditComplex, which
 // is also where you should get the instance from.
 type MessageEdit struct {
 	Content         *string                 `json:"content,omitempty"`
-	Embed           *MessageEmbed           `json:"embed,omitempty"`
+	Embeds          []*MessageEmbed         `json:"embeds,omitempty"`
 	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 
 	ID      string
 	Channel string
+
+	// TODO: Remove this when compatibility is not required.
+	Embed *MessageEmbed `json:"-"`
 }
 
 // NewMessageEdit returns a MessageEdit struct, initialized
@@ -188,7 +193,14 @@ func (m *MessageEdit) SetContent(str string) *MessageEdit {
 // SetEmbed is a convenience function for setting the embed,
 // so you can chain commands.
 func (m *MessageEdit) SetEmbed(embed *MessageEmbed) *MessageEdit {
-	m.Embed = embed
+	m.Embeds = []*MessageEmbed{embed}
+	return m
+}
+
+// SetEmbeds is a convenience function for setting the embeds,
+// so you can chain commands.
+func (m *MessageEdit) SetEmbeds(embeds []*MessageEmbed) *MessageEdit {
+	m.Embeds = embeds
 	return m
 }
 
